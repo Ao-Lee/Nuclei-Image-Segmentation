@@ -84,6 +84,7 @@ def GetData():
     return X_train, Y_train, X_test, sizes_test
     
 
+    
 # Define IoU metric
 def MeanIoU(y_true, y_pred):
     prec = []
@@ -193,16 +194,14 @@ def Train(model, X_train, Y_train):
     results = model.fit(X_train, Y_train, verbose=2, validation_split=0.1, batch_size=16, epochs=50, callbacks=callbacks)
     return results
     
-def CheckPrediction(model, X_train, Y_train):
-    ix = random.randint(0, Y_train.shape[0])
-    imshow(X_train[ix])
-    plt.show()
-    imshow(np.squeeze(Y_train[ix]))
-    plt.show()
-    data = X_train[ix].reshape([1] + list(X_train[ix].shape))
-    _, pred = Prediction(model, data)
-    imshow(np.squeeze(pred))
-    plt.show()
+# Data has shape of [batch, IMG_HEIGHT, IMG_WIDTH, IMG_CHANNELS]
+def Prediction(model,Data, threshold=0.5):
+    if SAVE_LOAD:
+        model = load_model('model-dsbowl2018-1.h5', custom_objects={'MeanIoU': MeanIoU})
+    assert len(Data.shape)==4
+    prob = model.predict(Data, batch_size=16, verbose=False)
+    pred = (prob > threshold).astype(np.uint8)
+    return prob, pred
 
 
 if __name__=='__main__':
@@ -214,8 +213,4 @@ if __name__=='__main__':
     df = GetSubmissionCSV(model, X_test, sizes_test)
 
     
-    
-    
-    
-    
-
+   
